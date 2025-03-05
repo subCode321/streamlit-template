@@ -6,7 +6,6 @@ import pyopenms
 if __name__ == '__main__':
     pages = {
         "OpenMS Web App" : [
-            st.Page(Path("content", "quickstart.py"), title="Quickstart", icon="👋"),
             st.Page(Path("content", "documentation.py"), title="Documentation", icon="📖"),
         ],
         "TOPP Workflow Framework": [

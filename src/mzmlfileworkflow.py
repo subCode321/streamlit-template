@@ -7,6 +7,8 @@ from datetime import datetime
 from src.common.common import reset_directory, show_fig, show_table
 import plotly.express as px
 
+def simple_job():
+    print('running man')
 
 def mzML_file_get_num_spectra(filepath):
     """
@@ -29,6 +31,7 @@ def mzML_file_get_num_spectra(filepath):
 
 
 def run_workflow(params, result_dir):
+    print('works', params, result_dir)
     """Load each mzML file into pyOpenMS Experiment and get the number of spectra."""
 
     result_dir = Path(result_dir, datetime.now().strftime("%Y-%m-%d %H_%M_%S"))

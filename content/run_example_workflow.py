@@ -3,11 +3,13 @@ import streamlit as st
 from pathlib import Path
 
 from src.common.common import page_setup, save_params
-from src import mzmlfileworkflow
+from src.mzmlfileworkflow import result_section, run_workflow
+from src.queue_1 import add_process_to_queue
 from rq import Queue
 from redis import Redis
 from rq_scheduler import Scheduler
-from datetime import datetime
+from datetime import datetime, timedelta
+# from tasks2 import simple_job
 
 # Page name "workflow" will show mzML file selector in sidebar
 params = page_setup()
@@ -22,10 +24,10 @@ This is great for large parameter sections.
 """
 )
 
-redis_conn = Redis()
-scheduler = Scheduler(
-    queue=Queue('mzML_workflow_queue', connection=redis_conn),
-    connection=redis_conn)
+
+# def run():
+#     print('running? 2')
+#     mzmlfileworkflow.run_workflow(params, result_dir)
 
 with st.form("workflow-with-mzML-form"):
     st.markdown("**Parameters**")
@@ -56,19 +58,15 @@ with st.form("workflow-with-mzML-form"):
 
 result_dir = Path(st.session_state["workspace"], "mzML-workflow-results")
 
-def run_workflow():
-    mzmlfileworkflow.run_workflow(params, result_dir)
-
 if run_workflow_button:
     params = save_params(params)
     if params["example-workflow-selected-mzML-files"]:
-        scheduler.enqueue_at(
-            datetime.now(), 
-            run_workflow,
-            args=("mzML_workflow_queue"))
+        queue = Queue(connection=Redis())
+        job = queue.enqueue(run_workflow, params, result_dir)
+        # st.success(f"Workflow queued with job ID: {job.id} {job.get_status()} {len(list(queue.get_jobs()))}")
     else:
         st.warning("Select some mzML files.")
 
 
 
-mzmlfileworkflow.result_section(result_dir)
+result_section(result_dir)
