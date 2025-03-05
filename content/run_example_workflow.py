@@ -4,6 +4,10 @@ from pathlib import Path
 
 from src.common.common import page_setup, save_params
 from src import mzmlfileworkflow
+from rq import Queue
+from redis import Redis
+from rq_scheduler import Scheduler
+from datetime import datetime
 
 # Page name "workflow" will show mzML file selector in sidebar
 params = page_setup()
@@ -17,6 +21,11 @@ Changing widgets within the form will not trigger the execution of the script im
 This is great for large parameter sections.
 """
 )
+
+redis_conn = Redis()
+scheduler = Scheduler(
+    queue=Queue('mzML_workflow_queue', connection=redis_conn),
+    connection=redis_conn)
 
 with st.form("workflow-with-mzML-form"):
     st.markdown("**Parameters**")
@@ -47,10 +56,16 @@ with st.form("workflow-with-mzML-form"):
 
 result_dir = Path(st.session_state["workspace"], "mzML-workflow-results")
 
+def run_workflow():
+    mzmlfileworkflow.run_workflow(params, result_dir)
+
 if run_workflow_button:
     params = save_params(params)
     if params["example-workflow-selected-mzML-files"]:
-        mzmlfileworkflow.run_workflow(params, result_dir)
+        scheduler.enqueue_at(
+            datetime.now(), 
+            run_workflow,
+            args=("mzML_workflow_queue"))
     else:
         st.warning("Select some mzML files.")
 
