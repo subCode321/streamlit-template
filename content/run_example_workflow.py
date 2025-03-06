@@ -3,7 +3,7 @@ import streamlit as st
 from pathlib import Path
 
 from src.common.common import page_setup, save_params
-from src import mzmlfileworkflow, stats
+from src import mzmlfileworkflow
 from rq import Queue
 from redis import Redis
 import time
