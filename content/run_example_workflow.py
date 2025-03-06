@@ -3,7 +3,7 @@ import streamlit as st
 from pathlib import Path
 
 from src.common.common import page_setup, save_params
-from src import mzmlfileworkflow
+from src import mzmlfileworkflow, stats
 from rq import Queue
 from redis import Redis
 import time
@@ -83,3 +83,28 @@ if run_workflow_button:
 
 
 mzmlfileworkflow.result_section(result_dir)
+
+st.header("Hardware Monitoring")
+
+cpu_usage_column, memory_usage_column = st.columns(2)
+
+with cpu_usage_column:
+    cpu_metric = cpu_usage_column.metric("CPU", "0%")
+    cpu_usage_progress_bar = st.progress(0)
+
+with memory_usage_column:
+    memory_metric = memory_usage_column.metric("RAM", "0%")
+    memory_usage_progress_bar = st.progress(0)
+
+# Start monitoring the system in a loop
+while True:
+    cpu_usage = stats.get_cpu_usage()
+    memory_usage = stats.get_ram_usage()
+
+    # Update the progress bars
+    cpu_usage_progress_bar.progress(cpu_usage/100)
+    memory_usage_progress_bar.progress(memory_usage/100)
+    cpu_metric.metric("CPU", f"{cpu_usage}%")
+    memory_metric.metric("RAM", f"{memory_usage}%")
+
+    time.sleep(1)
