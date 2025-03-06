@@ -4,6 +4,9 @@ from pathlib import Path
 
 from src.common.common import page_setup, save_params
 from src import mzmlfileworkflow
+from rq import Queue
+from redis import Redis
+import time
 
 # Page name "workflow" will show mzML file selector in sidebar
 params = page_setup()
@@ -47,13 +50,36 @@ with st.form("workflow-with-mzML-form"):
 
 result_dir = Path(st.session_state["workspace"], "mzML-workflow-results")
 
+def get_workflow_progress_logs(job_id):
+    r = Redis()
+    return r.lrange(f"workflow_progress_logs:{job_id}", 0, -1)
+
 if run_workflow_button:
     params = save_params(params)
     if params["example-workflow-selected-mzML-files"]:
-        mzmlfileworkflow.run_workflow(params, result_dir)
+        queue = Queue('mzml_workflow_run', connection=Redis())
+        job = queue.enqueue(mzmlfileworkflow.run_workflow, params, result_dir, st.session_state["workspace"])
+        with st.status("Workflow in progress...", expanded=True) as status:
+            last_len = 0
+            # read logs till job is running
+            while not job.is_finished:
+                logs = get_workflow_progress_logs(job.id)
+
+                if len(logs) > last_len:
+                    # read from the last read log
+                    for log in logs[last_len:]:
+                        st.write(log.decode('utf-8'))
+                    last_len = len(logs)
+
+                time.sleep(1)
+            
+            if job.is_finished:
+                status.update(label="Workflow complete!", expanded=False, state='complete')
+            else:
+                status.update(label="Workflow stopped!", expanded=False, state='error')
+
     else:
         st.warning("Select some mzML files.")
-
 
 
 mzmlfileworkflow.result_section(result_dir)
