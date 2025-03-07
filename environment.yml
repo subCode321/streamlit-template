@@ -15,3 +15,5 @@ dependencies:
         - captcha==0.5.0
         - pyopenms_viz==1.0.0
         - streamlit-js-eval
+        - redis==5.2.1
+        - rq==2.1.0
