@@ -6,8 +6,7 @@ import time
 from datetime import datetime
 from src.common.common import reset_directory, show_fig, show_table
 import plotly.express as px
-import redis
-from rq import get_current_job
+from src.workflow.mzmlfileworkflowstatus import log_mzml_workflow_progress
 
 def mzML_file_get_num_spectra(filepath):
     """
@@ -28,13 +27,6 @@ def mzML_file_get_num_spectra(filepath):
     time.sleep(2)
     return exp.size()
 
-# log the progress of workflow job into redis
-def log_workflow_progress(message):
-    job = get_current_job()
-    log_key = f"workflow_progress_logs:{job.id}"
-    r = redis.Redis()
-    r.rpush(log_key, message)
-
 def run_workflow(params, result_dir, workspace_path):
     """Load each mzML file into pyOpenMS Experiment and get the number of spectra."""
 
@@ -45,10 +37,10 @@ def run_workflow(params, result_dir, workspace_path):
     # collect spectra numbers
     num_spectra = []
 
-    log_workflow_progress("Loading mzML files and getting number of spectra...")
+    log_mzml_workflow_progress("Loading mzML files and getting number of spectra...")
     for file in params["example-workflow-selected-mzML-files"]:
         # reading mzML file, getting num spectra and adding some extra time
-        log_workflow_progress(f"Reading mzML file: {file} ...")
+        log_mzml_workflow_progress(f"Reading mzML file: {file} ...")
         num_spectra.append(
             mzML_file_get_num_spectra(
                 str(
