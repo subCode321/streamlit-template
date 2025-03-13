@@ -346,6 +346,7 @@ jobs:
         
             <!-- Folder structure -->
             <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+            <Property Id="WORKSPACE_PATH" Value="[SourceDir]workspaces" />
             <Directory Id="TARGETDIR" Name="SourceDir">
               <Directory Id="ProgramFilesFolder"> 
                 <Directory Id="INSTALLFOLDER" Name="${{ env.APP_NAME }}">
@@ -404,6 +405,21 @@ jobs:
                   <UIRef Id="WixUI_InstallDir" />
                   <UIRef Id="WixUI_ErrorProgressText" />
             </UI> 
+            <UI>
+                  <Dialog Id="CustomWorkspacesFolder" Title="Select workspaces folder">
+                      <Control Id="WorkspacesFolderPathLabel" Type="Text" Text="Select the folder to store workspaces:" />
+                      <Control Id="WorkspacesFolderPathEdit" Type="PathEdit" Property="WORKSPACE_PATH" />
+                      <Control Id="WorkspacesFolderPathBrowseButton" Type="PushButton" Text="Browse...">
+                          <Publish Event="SpawnDialog" Value="BrowseDlg" />
+                      </Control>
+                      <Control Id="WorkspacesFolderPathConfirmButton" Type="PushButton" Default="yes" Text="Next">
+                          <Publish Event="EndDialog" Value="Return" />
+                      </Control>
+                      <Control Id="WorkspacesFolderPathCancelButton" Type="PushButton" Cancel="yes" Text="Cancel">
+                          <Publish Event="EndDialog" Value="Exit" />
+                      </Control>
+                </Dialog>
+            </UI>
         
             <!-- Provide license; it should exist in the SourceDir folder -->
             <WixVariable Id="WixUILicenseRtf" Value="SourceDir/openms_license.rtf" />
