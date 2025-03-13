@@ -10,7 +10,7 @@ from streamlit.components.v1 import html
 
 import streamlit as st
 import pandas as pd
-
+import psutil
 try:
     from tkinter import Tk, filedialog
 
@@ -23,6 +23,18 @@ from src.common.captcha_ import captcha_control
 # Detect system platform
 OS_PLATFORM = sys.platform
 
+@st.fragment(run_every=5)
+def monitor_hardware():
+    cpu_progress = psutil.cpu_percent(interval=None) / 100
+    ram_progress = 1 - psutil.virtual_memory().available / psutil.virtual_memory().total
+
+    st.text(f"Ram ({ram_progress * 100:.2f}%)")
+    st.progress(ram_progress)
+
+    st.text(f"CPU ({cpu_progress * 100:.2f}%)")
+    st.progress(cpu_progress)
+
+    st.caption(f"Last fetched at: {time.strftime('%H:%M:%S')}")
 
 def load_params(default: bool = False) -> dict[str, Any]:
     """
@@ -313,16 +325,19 @@ def render_sidebar(page: str = "") -> None:
                         key="chosen-workspace",
                     )
                     # Create or Remove workspaces
-                    create_remove = st.text_input("create/remove workspace", "")
+                    create_remove = st.text_input("create/remove workspace", "").strip()
                     path = Path(workspaces_dir, create_remove)
                     # Create new workspace
                     if st.button("**Create Workspace**"):
-                        path.mkdir(parents=True, exist_ok=True)
-                        st.session_state.workspace = path
-                        st.query_params.workspace = create_remove
-                        # Temporary as the query update takes a short amount of time
-                        time.sleep(1)
-                        st.rerun()
+                        if create_remove:
+                            path.mkdir(parents=True, exist_ok=True)
+                            st.session_state.workspace = path
+                            st.query_params.workspace = create_remove
+                            # Temporary as the query update takes a short amount of time
+                            time.sleep(1)
+                            st.rerun()
+                        else:
+                            st.warning("Please enter a valid workspace name.")
                     # Remove existing workspace and fall back to default
                     if st.button("⚠️ Delete Workspace"):
                         if path.exists():
@@ -348,6 +363,9 @@ def render_sidebar(page: str = "") -> None:
                 )
             else:
                 st.session_state["spectrum_num_bins"] = 50
+
+        with st.expander("📊 **Resource Utilization**"):
+            monitor_hardware()      
         
         # Display OpenMS WebApp Template Version from settings.json 
         with st.container():
