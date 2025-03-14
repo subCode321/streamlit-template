@@ -346,7 +346,8 @@ jobs:
         
             <!-- Folder structure -->
             <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
-            <Property Id="WORKSPACE_PATH" Value="[SourceDir]workspaces" />
+            <!-- Store workspaces path as empty string which will be later updated in custom action -->
+            <Property Id="WORKSPACES_PATH" Value="" />
             <Directory Id="TARGETDIR" Name="SourceDir">
               <Directory Id="ProgramFilesFolder"> 
                 <Directory Id="INSTALLFOLDER" Name="${{ env.APP_NAME }}">
@@ -355,6 +356,14 @@ jobs:
                     <CreateFolder>
                       <Permission User="Everyone" GenericAll="yes" />
                     </CreateFolder>
+                  <!-- Create workspaces folder inside installation directory -->
+                  <Directory Id="WORKSPACES_FOLDER" Name="workspaces">
+                    <Component Id="CreateWorkspacesFolder" Guid="0068c3ca-f39f-4f70-adee-43ced04296a1">
+                      <CreateFolder>
+                        <Permission User="Everyone" GenericAll="yes" />
+                      </CreateFolder>
+                    </Component>
+                   </Directory>
                   </Component>
                 </Directory>
               </Directory>
@@ -365,6 +374,7 @@ jobs:
             <Feature Id="MainFeature" Title="Main Application" Level="1">
               <ComponentGroupRef Id="StreamlitExeFiles" />
               <ComponentRef Id="CreateAppFolder" />
+              <ComponentRef Id="CreateWorkspacesFolder" />
               <ComponentRef Id="DesktopShortcutComponent" />
               <ComponentRef Id="InstallDirShortcutComponent" />
             </Feature>
@@ -392,9 +402,13 @@ jobs:
             <Binary Id="ShowMessageScript" SourceFile="SourceDir/ShowSuccessMessage.vbs" />
             <CustomAction Id="ShowSuccessMessage" BinaryKey="ShowMessageScript" VBScriptCall="" Execute="immediate" Return="check" />
         
+            <!-- Custom Action to set workspaces path in variable after instlaation -->
+            <CustomAction Id="SetWorkspacesFolderPath" Property="WORKSPACE_PATH" Value="[INSTALLFOLDER]\workspaces" Execute="deferred" Return="check" />
+
             <!-- Add all Custom Actions -->
             <InstallExecuteSequence>
               <!-- Custom action display success message -->
+              <Custom Action="SetWorkspacesFolderPath" After="InstallFinalize">NOT Installed</Custom>
               <Custom Action="ShowSuccessMessage" After="InstallFinalize">NOT Installed</Custom>
               <!-- Run app directly after installation -->
               <!-- <Custom Action="RunApp" Before="InstallFinalize">NOT REMOVE</Custom> -->
@@ -404,20 +418,20 @@ jobs:
             <UI>
                   <UIRef Id="WixUI_InstallDir" />
                   <UIRef Id="WixUI_ErrorProgressText" />
-            </UI> 
-            <UI>
-                  <Dialog Id="CustomWorkspacesFolder" Title="Select workspaces folder">
-                      <Control Id="WorkspacesFolderPathLabel" Type="Text" Text="Select the folder to store workspaces:" />
-                      <Control Id="WorkspacesFolderPathEdit" Type="PathEdit" Property="WORKSPACE_PATH" />
-                      <Control Id="WorkspacesFolderPathBrowseButton" Type="PushButton" Text="Browse...">
-                          <Publish Event="SpawnDialog" Value="BrowseDlg" />
-                      </Control>
-                      <Control Id="WorkspacesFolderPathConfirmButton" Type="PushButton" Default="yes" Text="Next">
-                          <Publish Event="EndDialog" Value="Return" />
-                      </Control>
-                      <Control Id="WorkspacesFolderPathCancelButton" Type="PushButton" Cancel="yes" Text="Cancel">
-                          <Publish Event="EndDialog" Value="Exit" />
-                      </Control>
+
+                  <!-- Give user option to change workspaces folder after installation is complete -->
+                  <Dialog Id="CustomWorkspacesFolderDlg" Width="370" Height="270" Title="Select Workspaces Folder">
+                    <Control Id="WorkspacesFolderPathLabel" Type="Text" X="15" Y="10" Width="340" Height="30" Text="Select the folder to store workspaces:" />
+                    <Control Id="WorkspacesFolderPathEdit" Type="PathEdit" X="15" Y="50" Width="300" Height="20" Property="WORKSPACE_PATH" />
+                    <Control Id="WorkspacesFolderPathBrowseButton" Type="PushButton" X="320" Y="50" Width="30" Height="20" Text="Browse...">
+                        <Publish Event="SpawnDialog" Value="BrowseDlg" />
+                    </Control>
+                    <Control Id="WorkspacesFolderPathConfirmButton" Type="PushButton" X="200" Y="200" Width="80" Height="30" Default="yes" Text="Next">
+                        <Publish Event="EndDialog" Value="Return" />
+                    </Control>
+                    <Control Id="WorkspacesFolderPathCancelButton" Type="PushButton" X="290" Y="200" Width="80" Height="30" Cancel="yes" Text="Cancel">
+                        <Publish Event="EndDialog" Value="Exit" />
+                    </Control>
                 </Dialog>
             </UI>
         
