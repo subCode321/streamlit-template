@@ -403,12 +403,11 @@ jobs:
             <CustomAction Id="ShowSuccessMessage" BinaryKey="ShowMessageScript" VBScriptCall="" Execute="immediate" Return="check" />
         
             <!-- Custom Action to set workspaces path in variable after instlaation -->
-            <CustomAction Id="SetWorkspacesFolderPath" Property="WORKSPACE_PATH" Value="[INSTALLFOLDER]\workspaces" Execute="deferred" Return="check" />
+            <CustomAction Id="SetWorkspacesFolderPath" Property="WORKSPACES_PATH" Value="[INSTALLFOLDER]\workspaces" Execute="immediate" />
 
             <!-- Add all Custom Actions -->
             <InstallExecuteSequence>
               <!-- Custom action display success message -->
-              <Custom Action="SetWorkspacesFolderPath" After="InstallFinalize">NOT Installed</Custom>
               <Custom Action="ShowSuccessMessage" After="InstallFinalize">NOT Installed</Custom>
               <!-- Run app directly after installation -->
               <!-- <Custom Action="RunApp" Before="InstallFinalize">NOT REMOVE</Custom> -->
