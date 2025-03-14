@@ -418,7 +418,8 @@ jobs:
                   <UIRef Id="WixUI_InstallDir" />
                   <UIRef Id="WixUI_ErrorProgressText" />
 
-                  <!-- Give user option to change workspaces folder after installation is complete -->
+                  <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="CustomWorkspacesFolderDlg" Order="1" />
+
                   <Dialog Id="CustomWorkspacesFolderDlg" Width="370" Height="270" Title="Select Workspaces Folder">
                     <Control Id="WorkspacesFolderPathLabel" Type="Text" X="15" Y="10" Width="340" Height="30" Text="Select the folder to store workspaces:" />
                     <Control Id="WorkspacesFolderPathEdit" Type="PathEdit" X="15" Y="50" Width="300" Height="20" Property="WORKSPACE_PATH" />
@@ -426,7 +427,7 @@ jobs:
                         <Publish Event="SpawnDialog" Value="BrowseDlg" />
                     </Control>
                     <Control Id="WorkspacesFolderPathConfirmButton" Type="PushButton" X="200" Y="200" Width="80" Height="30" Default="yes" Text="Next">
-                        <Publish Event="EndDialog" Value="Return" />
+                        <Publish Event="NewDialog" Value="VerifyReadyDlg" />
                     </Control>
                     <Control Id="WorkspacesFolderPathCancelButton" Type="PushButton" X="290" Y="200" Width="80" Height="30" Cancel="yes" Text="Cancel">
                         <Publish Event="EndDialog" Value="Exit" />
