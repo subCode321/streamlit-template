@@ -347,7 +347,7 @@ jobs:
             <!-- Folder structure -->
             <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
             <!-- Store workspaces path as empty string which will be later updated in custom action -->
-            <Property Id="WORKSPACES_PATH" Value="" />
+            <Property Id="WORKSPACES_PATH" />
             <Directory Id="TARGETDIR" Name="SourceDir">
               <Directory Id="ProgramFilesFolder"> 
                 <Directory Id="INSTALLFOLDER" Name="${{ env.APP_NAME }}">
@@ -356,6 +356,7 @@ jobs:
                     <CreateFolder>
                       <Permission User="Everyone" GenericAll="yes" />
                     </CreateFolder>
+                  </Component>
                   <!-- Create workspaces folder inside installation directory -->
                   <Directory Id="WORKSPACES_FOLDER" Name="workspaces">
                     <Component Id="CreateWorkspacesFolder" Guid="0068c3ca-f39f-4f70-adee-43ced04296a1">
@@ -364,7 +365,6 @@ jobs:
                       </CreateFolder>
                     </Component>
                    </Directory>
-                  </Component>
                 </Directory>
               </Directory>
               <Directory Id="DesktopFolder" />
